@@ -1,0 +1,182 @@
+#define function safeTransferETH(address, uint) nonpayable returns()
+#define function safeTransferFrom(address, address, address, uint256) nonpayable returns()
+#define function safeTransfer(address, address, uint256) nonpayable returns()
+#define function safeApprove(address, address, uint256) nonpayable returns()
+
+#define macro SAFE_TRANSFER_ETH() = takes(2) returns(0) {
+    0x20 0x00           // [retOffset, retSize, amount, address]
+    0x00 0x00           // [offset, size, retOffset, retSize, amount, address]
+    dup5                // [amount, offset, size, retOffset, retSize, amount, address]
+    dup7                // [addr, amount, offset, size, retOffset, retSize, amount, address]
+    gas                 // [gas, addr, amount, offset, size, retOffset, retSize, amount, address]
+    call                // [success, amount, address]
+
+    0x01 eq             // [0x01 == success, amount, address]
+    success             // [jumpdest, result, amount, address]
+    jumpi               // [amount, address]
+
+  rev:
+    0x00 0x00
+    revert
+
+  success:
+    pop                 // [address]
+    pop                 // []
+    returndatasize      // [size]
+    0x1F                // [31 > size]
+    rev jumpi           // If 31 is larger than returndata it means the transfer failed
+
+    0x00 mload          // [returndata]
+    0x00 eq             // [0x00 == returndata]
+    rev jumpi           // If returndata is 0x00 that means the function returned false
+    
+    returndatasize      // [returndatasize]
+    iszero              // [returndatasize == 0x00]
+    rev jumpi           // [] 
+
+}
+
+#define macro SAFE_TRANSFER_FROM() = takes(4) returns(0) {
+  0x23b872dd            // [selector, amount, to, from, token]
+  0x00 mstore           // [amount, to, from, token]
+
+  swap2                 // [from, to, amount, token]
+  0x04 mstore           // [to, amount, token]
+
+  0x24 mstore           // [amount, token]
+
+  0x44 mstore           // [token]
+
+  0x20 0x00             // [retOffset, retSize, token]
+  0x64 0x00             // [offset, sieze, retOffset, retSize, token]
+  0x00                  // [amount, offset, sieze, retOffset, retSize, token]
+
+  dup6                  // [token, amount, offset, sieze, retOffset, retSize, token]
+  gas                   // [gas, token, amount, offset, sieze, retOffset, retSize, token]
+  call                  // [success, token]
+
+  0x01 eq               // [0x01 == success, token]
+  success               // [jumpdest, result, token]
+  jumpi                 // [token]
+  
+  rev:  
+    0x00 0x00 
+    revert
+
+  success:
+    pop
+    returndatasize      // [size]
+    0x1F                // [31 > size]
+    rev jumpi           // If 31 is larger than returndata it means the transfer failed
+
+    0x00 mload          // [returndata]
+    0x00 eq             // [0x00 == returndata]
+    rev jumpi           // If returndata is 0x00 that means the function returned false
+    
+    returndatasize      // [returndatasize]
+    iszero              // [returndatasize == 0x00]
+    rev jumpi           // [] 
+    
+}
+
+#define macro SAFE_APPROVE() = takes(3) returns(0) {
+    0x095ea7b3          // [selector, amount, to, token]
+    0x00 mstore         // [amount, to, token]
+
+    0x24 mstore         // [to, token]
+    0x04 mstore         // [token]
+
+    0x20 0x00           // [retOffset, retSize, token]
+    0x44 0x00           // [offset, size, retOffset, retSize, token]
+    0x00                // [amount, offset, size, retOffset, retSize, token]
+
+    dup6                // [token, amount, offset, size, retOffset, retSize, token]
+    gas                 // [gas, token, amount, offset, size, retOffset, retSize, token]
+    call                // [success, token]
+
+    0x01 eq             // [success == 0x01, token]
+    success             // [jumpdest, result, token]
+    jumpi               // [token]
+
+  rev:
+    0x00 0x00
+    revert
+
+  success:
+    pop                 // []
+    returndatasize      // [size]
+    0x1F                // [31 > size]
+    rev jumpi           // If 31 is larger than returndata it means the transfer failed
+
+    0x00 mload          // [returndata]
+    0x00 eq             // [0x00 == returndata]
+    rev jumpi           // If returndata is 0x00 that means the function returned false
+    
+    returndatasize      // [returndatasize]
+    iszero              // [returndatasize == 0x00]
+    rev jumpi           // [] 
+}
+
+#define macro SAFE_TRANSFER() = takes(3) returns(0) {
+  0xa9059cbb            // [selector, amount, to, token]
+  0x00 mstore           // [amount, to, token]
+
+  swap1                 // [to, amount, token]
+  0x04 mstore           // [amount, token]
+
+  0x24 mstore           // [token]
+
+  0x20 0x00             // [retOffset, retSize, token]
+  0x44 0x00             // [offset, size, retOffset, retSize, token]
+  0x00                  // [amount, offset, size, retOffset, retSize, token]
+
+  dup6                  // [token, amount, offset, size, retOffset, retSize, token]
+  gas                   // [gas, token, amount, offset, size, retOffset, retSize, token]
+  call                  // [success, token]
+
+  0x01 eq               // [success == 0x01, token]
+  success               // [jumpdest, result, token]
+  jumpi                 // [token]
+
+  rev:
+    0x00 0x00
+    revert
+
+  success:
+    pop                 // []
+    returndatasize      // [size]
+    0x1F                // [31 > size]
+    rev jumpi           // If 31 is larger than returndata it means the transfer failed
+
+    0x00 mload          // [returndata]
+    0x00 eq             // [0x00 == returndata]
+    rev jumpi           // If returndata is 0x00 that means the function returned false
+    
+    returndatasize      // [returndatasize]
+    iszero              // [returndatasize == 0x00]
+    rev jumpi           // [] 
+
+
+}
+
+#define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr
+
+    dup1 __FUNC_SIG(safeTransferETH) eq safeTransferETH jumpi
+    dup1 __FUNC_SIG(safeTransfer) eq safeTransferETH jumpi
+    dup1 __FUNC_SIG(safeTransferFrom) eq safeTransferFrom jumpi
+    dup1 __FUNC_SIG(safeApprove) eq safeApprove jumpi
+
+    safeTransfer:
+        SAFE_TRANSFER()
+
+    safeTransferFrom:
+        SAFE_TRANSFER_FROM()
+    
+    safeTransferETH:
+        SAFE_TRANSFER_ETH()
+
+    safeApprove:
+        SAFE_APPROVE()
+
+}

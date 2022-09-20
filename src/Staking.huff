@@ -1,0 +1,91 @@
+/* Imports */
+#include "./HashMap.huff"
+#include "./SafeTranferLib.huff"
+
+/* Interface */
+#define function stake(uint) nonpayable returns ()
+#define function unstake(uint) nonpayable returns ()
+#define function balance(address) view returns(uint)
+
+#define event Staked(address,uint)
+#define event Unstaked(address, uint)
+
+/* Event Signatures */
+#define constant STAKED_EVENT_SIGNATURE = 0x540b79f9e66c85a9189643a2328eb33d51df3fb7fa1c84715efe50ce03c9306d
+#define constant UNSTAKED_EVENT_SIGNATURE = 0x49324cc2be51585a15f274420cdfa4e4f0ca7d3c9728ed12a16fa914ca6f6921
+
+/* Storage Slots */
+// Will be overriden
+#define constant TOKEN_ADDRESS = 0x0000000000000000000000000000000000000000
+#define constant BALANCE_LOCATION = FREE_STORAGE_POINTER()
+
+/* Methods */
+#define macro STAKE() = takes (0) returns (0) {
+    0x04 calldataload               // [amount]
+    address                         // [address(this), amount]
+    caller                          // [msg.sender, address(this), amount]
+    [TOKEN_ADDRESS] sload           // [token, msg.sender, address(this), amount]
+    SAFE_TRANSFER_FROM()            // []
+    
+
+
+    0x04 calldataload               // [amount]
+    caller                          // [msg.sender, amount]
+    [BALANCE_LOCATION]              // [slot, msg.sender, amount]
+    LOAD_ELEMENT_FROM_KEYS(0x00)    // [balance, amount]
+    add                             // [newBalance]
+
+    caller                          // [msg.sender, newBalance]
+    [BALANCE_LOCATION]
+    STORE_ELEMENT_FROM_KEYS(0x00)   // []
+}
+
+#define macro UNSTAKE() = takes (0) returns (0) {
+    0x04 calldataload               // [amount]
+    caller                          // [msg.sender, amount]
+    [BALANCE_LOCATION]              // [slot, msg.sender, amount]
+    LOAD_ELEMENT_FROM_KEYS(0x00)    // [balance, amount]
+    dup1                            // [balance, balance, amount]
+    dup3                            // [amount, balance, balance, amount]
+    lt                              // [amount < balance, balance, amount]
+    success                         // [jumpDest, result, balance, amount]
+    jumpi                           // [balance, amount]
+
+    0x00 0x00
+    revert
+
+    success:
+        [TOKEN_ADDRESS] sload       // [token, balance, amount]
+        caller                      // [msg.sender, token, balance, amount]
+        dup4                        // [amount, msg.sender, token, balance, amount]
+        SAFE_TRANSFER()             // [balance, amount]
+
+
+        sub                         // [newBalance]
+        caller                      // [msg.sender, newBalance]
+        [BALANCE_LOCATION]
+        STORE_ELEMENT_FROM_KEYS(0x00)  
+}
+
+#define macro BALANCE() = takes(0) returns(0) {
+    0x04 calldataload               // [address]
+    [BALANCE_LOCATION]
+    LOAD_ELEMENT_FROM_KEYS(0x00)    // [balance]
+    0x00 mstore                     // []
+    0x20 0x00
+    return
+}
+
+#define macro MAIN() = takes (0) returns (0) {
+    0x00 calldataload 0xE0 shr
+    dup1 __FUNC_SIG(STAKE) eq stake jumpi
+    dup1 __FUNC_SIG(UNSTAKE) eq unstake jumpi
+    dup1 __FUNC_SIG(BALANCE) eq bal jumpi
+
+    stake:
+        STAKE()
+    unstake:
+        UNSTAKE()
+    bal: 
+        BALANCE()
+}

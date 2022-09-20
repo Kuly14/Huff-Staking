@@ -6,24 +6,31 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 contract SimpleStoreTest is Test {
-    /// @dev Address of the SimpleStore contract.  
-    SimpleStore public simpleStore;
+    /// @dev Address of the SimpleStore contract.
+    Staking public staking;
+    IERC20 public token;
 
     /// @dev Setup the testing environment.
     function setUp() public {
-        simpleStore = SimpleStore(HuffDeployer.deploy("SimpleStore"));
-    }
+        token = IERC20(HuffDeployer.deploy("MockToken"));
 
-    /// @dev Ensure that you can set and get the value.
-    function testSetAndGetValue(uint256 value) public {
-        simpleStore.setValue(value);
-        console.log(value);
-        console.log(simpleStore.getValue());
-        assertEq(value, simpleStore.getValue());
+        staking = Staking(
+            HuffDeployer
+                .config()
+                .with_addr_constant("TOKEN_ADDRESS", address(token))
+                .deploy("Staking")
+        );
     }
 }
 
-interface SimpleStore {
-    function setValue(uint256) external;
-    function getValue() external returns (uint256);
+interface Staking {
+    function stake(uint256) external;
+
+    function unstake(uint256) external;
+}
+
+interface IERC20 {
+    function mint(address, uint) external;
+
+    function transfer(address, uint) external;
 }

@@ -1,6 +1,6 @@
 # Huff Staking Contract
 
-IN PROGRESS
+Simple Staking Contract written in Huff.
 
 ## Acknowledgements
 

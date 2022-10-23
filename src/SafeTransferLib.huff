@@ -1,3 +1,8 @@
+/// @title SafeTransferLib
+/// @author Kuly14 - https://github.com/Kuly14
+/// @notice SafeTransferLib written in Huff
+/// @custom:experimental This is an experimental contract DO NOT USE IN PRODUCTION
+
 #define function safeTransferETH(address, uint) nonpayable returns()
 #define function safeTransferFrom(address, address, address, uint256) nonpayable returns()
 #define function safeTransfer(address, address, uint256) nonpayable returns()

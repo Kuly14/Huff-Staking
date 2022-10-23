@@ -1,3 +1,8 @@
+/// @title Staking
+/// @author Kuly14 - https://github.com/Kuly14
+/// @notice Simple Staking Contract written in Huff
+/// @custom:experimental This is an experimental contract DO NOT USE IN PRODUCTION
+
 /* Imports */
 #include "./HashMap.huff"
 #include "./SafeTranferLib.huff"

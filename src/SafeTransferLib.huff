@@ -42,7 +42,7 @@
 }
 
 #define macro SAFE_TRANSFER_FROM() = takes(4) returns(0) {
-  0x23b872dd            // [selector, amount, to, from, token]
+  __RIGHTPAD(0x23b872dd)// [selector, amount, to, from, token]
   0x00 mstore           // [amount, to, from, token]
 
   swap2                 // [from, to, amount, token]
@@ -85,7 +85,7 @@
 }
 
 #define macro SAFE_APPROVE() = takes(3) returns(0) {
-    0x095ea7b3          // [selector, amount, to, token]
+    __RIGHTPAD(0x095ea7b3)// [selector, amount, to, token]
     0x00 mstore         // [amount, to, token]
 
     0x24 mstore         // [to, token]
@@ -123,7 +123,7 @@
 }
 
 #define macro SAFE_TRANSFER() = takes(3) returns(0) {
-  0xa9059cbb            // [selector, amount, to, token]
+  __RIGHTPAD(0xa9059cbb)// [selector, amount, to, token]
   0x00 mstore           // [amount, to, token]
 
   swap1                 // [to, amount, token]
@@ -183,5 +183,4 @@
 
     safeApprove:
         SAFE_APPROVE()
-
 }
